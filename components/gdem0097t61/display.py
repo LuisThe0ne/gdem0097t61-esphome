@@ -7,7 +7,6 @@ from esphome.const import (
     CONF_DC_PIN,
     CONF_ID,
     CONF_LAMBDA,
-    CONF_PAGES,
     CONF_RESET_PIN,
 )
 
@@ -38,7 +37,7 @@ CONFIG_SCHEMA = cv.All(
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
-    await cg.register_component(var, config)
+    # register_display internally calls register_component — do NOT call it separately
     await display.register_display(var, config)
     await spi.register_spi_device(var, config)
 
