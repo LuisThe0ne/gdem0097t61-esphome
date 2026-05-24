@@ -14,11 +14,11 @@ DEPENDENCIES = ["spi"]
 
 gdem0097t61_ns = cg.esphome_ns.namespace("gdem0097t61")
 
+# DisplayBuffer already extends PollingComponent — don't list it again here
 GDEM0097T61 = gdem0097t61_ns.class_(
     "GDEM0097T61",
-    cg.PollingComponent,
-    spi.SPIDevice,
     display.DisplayBuffer,
+    spi.SPIDevice,
 )
 
 CONFIG_SCHEMA = cv.All(
@@ -37,7 +37,6 @@ CONFIG_SCHEMA = cv.All(
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
-    # register_display internally calls register_component — do NOT call it separately
     await display.register_display(var, config)
     await spi.register_spi_device(var, config)
 
