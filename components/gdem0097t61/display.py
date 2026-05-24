@@ -3,27 +3,26 @@ import esphome.config_validation as cv
 from esphome import pins
 from esphome.components import display, spi
 from esphome.const import (
+    CONF_BUSY_PIN,
     CONF_DC_PIN,
     CONF_ID,
     CONF_LAMBDA,
     CONF_PAGES,
     CONF_RESET_PIN,
-    CONF_BUSY_PIN,
-    CONF_UPDATE_INTERVAL,
 )
 
 DEPENDENCIES = ["spi"]
-AUTO_LOAD = ["display"]
 
 gdem0097t61_ns = cg.esphome_ns.namespace("gdem0097t61")
+
 GDEM0097T61 = gdem0097t61_ns.class_(
     "GDEM0097T61",
-    display.DisplayBuffer,
+    cg.PollingComponent,
     spi.SPIDevice,
-    cg.Component,
+    display.DisplayBuffer,
 )
 
-CONFIG_SCHEMA = (
+CONFIG_SCHEMA = cv.All(
     display.FULL_DISPLAY_SCHEMA.extend(
         {
             cv.GenerateID(): cv.declare_id(GDEM0097T61),

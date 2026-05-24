@@ -3,19 +3,6 @@
 /**
  * ESPHome custom component for the Good Display GDEM0097T61
  * 0.97" B/W e-paper, 184x88 pixels, SSD1680 driver IC
- *
- * Datasheet: https://www.good-display.com/companyfile/1333.html
- * SSD1680 datasheet: https://v4.cecdn.yun300.cn/100001_1909185148/SSD1680.pdf
- *
- * Wiring (18-pin FPC connector — use the DESPI-C097 breakout or similar):
- *   VCC  → 3.3V
- *   GND  → GND
- *   BUSY → busy_pin  (output from display, HIGH = busy)
- *   RST  → reset_pin (active LOW)
- *   DC   → dc_pin    (LOW = command, HIGH = data)
- *   CS   → cs_pin    (active LOW)
- *   CLK  → SPI CLK
- *   DIN  → SPI MOSI
  */
 
 #include "esphome/core/component.h"
@@ -45,19 +32,17 @@ static const uint8_t SSD1680_SET_RAMY_ADDR       = 0x45;
 static const uint8_t SSD1680_SET_RAMX_COUNTER    = 0x4E;
 static const uint8_t SSD1680_SET_RAMY_COUNTER    = 0x4F;
 
-// Display dimensions
 static const uint16_t GDEM0097T61_WIDTH  = 184;
 static const uint16_t GDEM0097T61_HEIGHT = 88;
+static const uint16_t GDEM0097T61_RAM_WIDTH_BYTES = (GDEM0097T61_WIDTH + 7) / 8;  // 23
 
-// RAM width must be a multiple of 8 (bytes per row)
-// 184 pixels = 23 bytes per row
-static const uint16_t GDEM0097T61_RAM_WIDTH_BYTES = (GDEM0097T61_WIDTH + 7) / 8;  // = 23
-
-class GDEM0097T61 : public display::DisplayBuffer,
+// Inheritance order must match display.py: PollingComponent, SPIDevice, DisplayBuffer
+class GDEM0097T61 : public PollingComponent,
                     public spi::SPIDevice<spi::BIT_ORDER_MSB_FIRST,
                                          spi::CLOCK_POLARITY_LOW,
                                          spi::CLOCK_PHASE_LEADING,
-                                         spi::DATA_RATE_2MHZ> {
+                                         spi::DATA_RATE_2MHZ>,
+                    public display::DisplayBuffer {
  public:
   void set_dc_pin(GPIOPin *dc_pin) { dc_pin_ = dc_pin; }
   void set_reset_pin(GPIOPin *reset_pin) { reset_pin_ = reset_pin; }
@@ -84,7 +69,7 @@ class GDEM0097T61 : public display::DisplayBuffer,
   void wait_until_idle_();
 
   void cmd_(uint8_t command);
-  void data_(uint8_t data);
+  void data_(uint8_t value);
   void cmd_data_(uint8_t command, const uint8_t *data, size_t len);
 
   GPIOPin *dc_pin_{nullptr};
